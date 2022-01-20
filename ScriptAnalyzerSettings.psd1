@@ -1,0 +1,1 @@
+@{ExcludeRules = @('PSReviewUnusedParameter') }
