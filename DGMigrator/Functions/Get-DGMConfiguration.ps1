@@ -4,7 +4,7 @@ Function Get-DGMConfiguration
     .SYNOPSIS
         Gets the DGMigrator Configurations.  If no configurations have been created or imported yet, returns nothing.  Use Import-DGMConfiguration to import DGManagerConfigurations.
     .DESCRIPTION
-            Gets the DGMigrator Configurations.  If no configurations have been created or imported yet, returns nothing.  Use Import-DGMConfiguration to import DGManagerConfigurations.
+        Gets the DGMigrator Configurations.  If no configurations have been created or imported yet, returns nothing.  Use Import-DGMConfiguration to import DGManagerConfigurations.
     .EXAMPLE
         Get-DGMConfiguration -Name ContosoMerger
 
