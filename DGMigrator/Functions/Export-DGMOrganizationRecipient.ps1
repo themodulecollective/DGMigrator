@@ -61,7 +61,22 @@ function Export-DGMOrganizationRecipient
             Write-PSFMessage -level Verbose -Message "Processing operation $($MyInvocation.MyCommand.Name) for target organization $($o.Name)"
 
             $Credential = Import-Clixml -Path $o.Credential
-            Connect-ExchangeOnline -Credential $Credential
+            
+            switch ($o.MFARequired)
+            {
+                $true
+                {
+                    Connect-ExchangeOnline -UserPrincipalName $Credential.username
+                }
+                $false
+                {
+                    Connect-ExchangeOnline -Credential $Credential
+                }
+                Default
+                {
+                    Connect-ExchangeOnline -Credential $Credential
+                }
+            }
 
             $eDGMRParams = @{
                 Operation        = $operation
