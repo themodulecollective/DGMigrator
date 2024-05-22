@@ -1,38 +1,54 @@
 function Export-ExchangeRecipient
 {
+    <#
+    .SYNOPSIS
+        Exports recipients from Exchange
+    .DESCRIPTION
+        Export recipients from Exchange to XML or Zip files. Can specify the types of recipients to include.
+    .EXAMPLE
+        Export-ExchangeRecipient -OutpuFolderPath "C:\Users\UserName\Documents" -Operation Recipient
+        Exports all recipients to an xml file at the listed filepath
+    #>
+
     [cmdletbinding()]
     param(
+        #
         [parameter(Mandatory)]
         [ValidateScript( { Test-Path -type Container -Path $_ })]
         [string]$OutputFolderPath
         ,
+        #
         [string]$RecipientFilter
         ,
+        #
         [parameter(Mandatory)]
         [ValidateSet(
             'Mailbox',
+            'MailboxStatistics',
+            'MailboxFolderStatistics',
             'CASMailbox',
             'RemoteMailbox',
+            'MailUser',
             'Recipient',
             'ResourceCalendarProcessing',
-            'PublicFolderMailbox',
             'ArbitrationMailbox',
-            'MailboxStatistics',
             'PublicFolder',
+            'PublicFolderMailbox',
             'PublicFolderStatistics',
             'MailPublicFolder',
             'Contact',
             'DistributionGroup',
             'DistributionGroupMember',
             'DistributionGroupManagedBy',
-            'DistributionGroupModeratedBy',
+            'DistributionGroupModeratedBy',            
             'DistributionGroupAcceptMessagesOnlyFrom',
             'DistributionGroupBypassModeration',
-            'DistributionGroupGrantSendOnBehalfTo',
+            'DistributionGroupGrantSendOnBehalfTo',           
             'DistributionGroupRejectMessagesFrom',
+            'MobileDevice',
+            'MobileDeviceStatistics',
             'UnifiedGroup',
-            'UnifiedGroupMember',
-            'MailUser'
+            'UnifiedGroupMember'
         )]
         [string[]]$Operation #Specify the types of recipients or recipient data to include in the export.  For DistributionGroupMember and UnifiedGroupMember you must include DistributionGroup or UnifiedGroup respectively in order to successfully export membership.
         ,
@@ -57,8 +73,7 @@ function Export-ExchangeRecipient
             throw("You must include the DistributionGroup operation when including the $o Operation")
         }
     }
-
-    #Write-Verbose -Verbose -Message 'Export-DGMExchangeRecipient Version x.x'
+    #Write-Verbose -Verbose -Message 'Export-ExchangeRecipient Version x.x'
 
     $ErrorActionPreference = 'Continue'
 
@@ -161,6 +176,14 @@ function Export-ExchangeRecipient
             $AMParams.Value = @(Get-Mailbox @GetRParams | ForEach-Object { Get-MailboxStatistics -identity $_.ExchangeGUID.guid -WarningAction 'SilentlyContinue' })
             $ExchangeRecipients | Add-Member @AMParams
         }
+        'MailboxFolderStatistics'
+        {
+            $AMParams.Name = $_
+            $OpCount++
+            Write-Progress -Activity 'Exporting Exchange Recipients' -CurrentOperation $AMParams.Name -Status "Operation $OpCount of $OpTotalCount" -Id 0
+            $AMParams.Value = @(Get-Mailbox @GetRParams | ForEach-Object { Get-MailboxFolderStatistics -identity $_.ExchangeGUID.guid -WarningAction 'SilentlyContinue' -FolderScope 'All' -IncludeOldestAndNewestItems})
+            $ExchangeRecipients | Add-Member @AMParams
+        }
         'PublicFolder'
         {
             $AMParams.Name = $_
@@ -227,6 +250,7 @@ function Export-ExchangeRecipient
                     Select-Object -Property DisplayName, Alias, PrimarySMTPAddress, RecipientTypeDetails, GUID, ExchangeGUID, ExternalDirectoryObjectID, @{name = 'TargetGroupGUID'; e = { $dg.guid.guid } }, @{name = 'TargetGroupExternalDirectoryObjectID'; e = { $dg.ExternalDirectoryObjectID } }, @{n = 'TargetGroupPrimarySMTPAddress'; e = { $dg.PrimarySMTPAddress } }, @{n = 'TargetGroupDisplayName'; e = { $dg.DisplayName } }, @{n='Role'; e= {$thisRole}}
                 }
                 Write-Progress -Id 1 -Completed -Activity "Exporting $thisOp"
+
             )
             $ExchangeRecipients | Add-Member @AMParams
         }
@@ -411,8 +435,31 @@ function Export-ExchangeRecipient
             $AMParams.Value = @(Get-MailUser @GetRParams)
             $ExchangeRecipients | Add-Member @AMParams
         }
+        'MobileDevice'
+        {
+            $AMParams.Name = $_
+            $OpCount++
+            Write-Progress -Activity 'Exporting Exchange Recipients' -CurrentOperation $AMParams.Name -Status "Operation $OpCount of $OpTotalCount" -Id 0
+            $AMParams.Value = @(Get-MobileDevice @GetRParams)
+            $ExchangeRecipients | Add-Member @AMParams
+        }
+        'MobileDeviceStatistics'
+        {
+            $AMParams.Name = $_
+            $OpCount++
+            Write-Progress -Activity 'Exporting Exchange Recipients' -CurrentOperation $AMParams.Name -Status "Operation $OpCount of $OpTotalCount" -Id 0
+            $AMParams.Value = @(
+                (((Get-MobileDevice @GetRParams).UserDisplayName | Sort-Object -unique).foreach({
+                        Get-Recipient -Identity $_ -ErrorAction SilentlyContinue
+                    }).ExchangeGUID.guid |
+                        Sort-Object -unique
+                    ).foreach({
+                        $ug = $_; Get-MobileDeviceStatistics -Mailbox $ug |
+                            Select-Object -Property @{n='UserExchangeGUID';e={$ug}},*
+                    }))
+            $ExchangeRecipients | Add-Member @AMParams
+        }
     }
-
 
     $DateString = Get-Date -Format yyyyMMddHHmmss
 
