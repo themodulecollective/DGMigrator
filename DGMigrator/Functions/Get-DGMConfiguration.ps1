@@ -29,6 +29,10 @@ Function Get-DGMConfiguration
         [string[]]$Name
         ,
         [switch]$Default
+        ,
+        [parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'All', Position = 1)]
+        [string[]]$All
+
     )
 
     process
@@ -42,9 +46,13 @@ Function Get-DGMConfiguration
                     (Get-PSFConfig -Module DGMigrator -Name Configurations.$($n)).foreach( { Get-PSFConfigValue -FullName $_.FullName })
                 }
             }
+            'Default'
+            {
+                (Get-PSFConfig -Module DGMigrator -Name Configurations.*).foreach( { Get-PSFConfigValue -FullName $_.FullName }) | Where-Object { $_.IsDefaultConfiguration -eq $True}
+            }
             'All'
             {
-                (Get-PSFConfig -Module DGMigrator -Name Configurations.*).foreach( { Get-PSFConfigValue -FullName $_.FullName }) | Where-Object { $_.IsDefaultConfiguration -eq $True -or -not $Default }
+                (Get-PSFConfig -Module DGMigrator -Name Configurations.*).foreach( { Get-PSFConfigValue -FullName $_.FullName })
             }
         }
     }

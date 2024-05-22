@@ -45,6 +45,8 @@ $Script:ModuleFiles = @(
   $(Join-Path -Path $functions -ChildPath 'Set-DGMConfiguration.ps1')
   $(Join-Path -Path $functions -ChildPath 'New-DGMConfiguration.ps1')
   $(Join-Path -Path $functions -ChildPath 'Get-DGMConfiguration.ps1')
+  $(Join-Path -Path $functions -ChildPath 'Export-DGMConfiguration.ps1')
+  $(Join-Path -Path $functions -ChildPath 'Get-DGMTimeStamp.ps1')
   $(Join-Path -Path $functions -ChildPath 'Remove-DGMConfiguration.ps1')
   $(Join-Path -Path $functions -ChildPath 'Import-DGMConfiguration.ps1')
   $(Join-Path -Path $functions -ChildPath 'Import-DGMRecipientData.ps1')

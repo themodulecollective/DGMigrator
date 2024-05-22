@@ -78,6 +78,8 @@
         'Set-DGMConfiguration'
         'New-DGMConfiguration'
         'Get-DGMConfiguration'
+        'Export-DGMConfiguration'
+        'Get-DGMTimeStamp'
         'Remove-DGMConfiguration'
         'Import-DGMConfiguration'
         'Import-DGMRecipientData'
