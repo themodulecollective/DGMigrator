@@ -24,7 +24,22 @@ function Invoke-DGMGroupRoleTargetOperation
     if ($null -ne $o.Credential)
     {
         $Credential = Import-Clixml -Path $o.Credential
-        Connect-ExchangeOnline -Credential $Credential
+        
+        switch ($o.MFARequired)
+        {
+            $true
+            {
+                Connect-ExchangeOnline -UserPrincipalName $Credential.username
+            }
+            $false
+            {
+                Connect-ExchangeOnline -Credential $Credential
+            }
+            Default
+            {
+                Connect-ExchangeOnline -Credential $Credential
+            }
+        }
     }
     else
     {
